@@ -21,7 +21,6 @@ def is_in_aws():
 def crawl(settings={}, spider_name="list-spider", spider_kwargs={}):
     project_settings = get_project_settings()
     spider_loader = SpiderLoader(project_settings)
-
     spider_cls = spider_loader.load(spider_name)
 
     feed_uri = ""
@@ -37,6 +36,7 @@ def crawl(settings={}, spider_name="list-spider", spider_kwargs={}):
     if is_in_aws():
         # Lambda can only write to the /tmp folder.
         settings['HTTPCACHE_DIR'] = "/tmp"
+        feed_uri = f"s3://{os.getenv('FEED_BUCKET_NAME')}/%(name)s-{spider_key}.csv"
     else:
         feed_uri = "file://{}/%(name)s-{}-%(time)s.json".format(
             os.path.join(os.getcwd(), "feed"),
