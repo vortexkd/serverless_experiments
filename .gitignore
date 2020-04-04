@@ -1,0 +1,7 @@
+hobby_scraper/feed/**
+.idea/**
+**.DS_Store
+**.scrapy/**
+hobby_scraper/.scrapy/**
+**/__pycache__/**
+out/**
