@@ -2,7 +2,8 @@
 import sys
 import json
 
-from crawl import crawl
+# from crawl import crawl
+from hobby_scraper.crawl import crawl
 
 
 def scrape(event={}, context={}):

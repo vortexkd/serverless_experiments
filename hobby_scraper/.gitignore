@@ -18,9 +18,3 @@ var/
 
 # Serverless directories
 .serverless
-**.DS_Store
-.idea
-.scrapy
-feed
-out/
-node_modules
