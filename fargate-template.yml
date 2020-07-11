@@ -35,6 +35,15 @@ Resources:
                 Resource: !Sub
                   - "arn:aws:s3:::#{BucketName}/*"
                   - BucketName: !Ref CpattScraperBucket
+        - PolicyName: EcsStepFunctionAccessPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:SendTaskSuccess
+                  - states:SendTaskFailure
+                  - states:SendTaskHeartbeat
+                Resource: "*"
 
   FargateExecutionRole:
     Type: AWS::IAM::Role

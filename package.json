@@ -2,9 +2,12 @@
   "name": "hobby-scraper",
   "description": "",
   "version": "0.1.0",
-  "dependencies": {},
+  "dependencies": {
+    "serverless-pseudo-parameters": "^2.5.0"
+  },
   "devDependencies": {
     "serverless-cloudformation-sub-variables": "^0.2.1",
-    "serverless-python-requirements": "^5.1.0"
+    "serverless-python-requirements": "^5.1.0",
+    "serverless-step-functions": "^2.21.1"
   }
 }

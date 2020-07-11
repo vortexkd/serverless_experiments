@@ -18,7 +18,7 @@ def is_in_aws():
     return os.getenv('AWS_EXECUTION_ENV') is not None
 
 
-def crawl(settings={}, spider_name="list-spider", spider_kwargs={}):
+def crawl(settings={}, spider_name="", key="", spider_kwargs={}):
     project_settings = get_project_settings()
     spider_loader = SpiderLoader(project_settings)
     spider_cls = spider_loader.load(spider_name)
@@ -36,7 +36,7 @@ def crawl(settings={}, spider_name="list-spider", spider_kwargs={}):
     if is_in_aws():
         # Lambda can only write to the /tmp folder.
         settings['HTTPCACHE_DIR'] = "/tmp"
-        feed_uri = f"s3://{os.getenv('FEED_BUCKET_NAME')}/%(name)s-{spider_key}.csv"
+        feed_uri = f"s3://{os.getenv('FEED_BUCKET_NAME')}/{spider_name}_{key}.csv"
     else:
         feed_uri = "file://{}/%(name)s-{}-%(time)s.json".format(
             os.path.join(os.getcwd(), "feed"),
@@ -50,3 +50,12 @@ def crawl(settings={}, spider_name="list-spider", spider_kwargs={}):
 
     process.crawl(spider_cls, **spider_kwargs)
     process.start()
+
+    if is_in_aws():
+        import boto3
+        import json
+        client = boto3.client('stepfunctions')
+        client.send_task_success(
+            taskToken=os.getenv('TASK_TOKEN_ENV_VARIABLE'),
+            output=json.dumps({"feed_uri": feed_uri})
+        )

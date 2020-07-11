@@ -3,7 +3,7 @@ service: hobby-scraper
 
 provider:
   name: aws
-  runtime: python3.8
+  runtime: python3.7
   logRetentionInDays: 1
 
   environment:
@@ -41,10 +41,52 @@ provider:
 functions:
   hello:
     handler: handler.hello
+  hello_step_2:
+    handler: handler.hello_step_2
   lambdaScrape:
     handler: launcher.scrape
   fargateScrape:
     handler: launch_fargate.launch_fargate
+
+
+stepFunctions:
+  stateMachines:
+    hellostepfunc1:
+      definition:
+        Comment: "A Hello World example of the Amazon States Language using an AWS Lambda Function"
+        StartAt: HelloWorld1
+        States:
+          HelloWorld1:
+            Type: Task
+            Resource: "arn:aws:states:::ecs:runTask.waitForTaskToken"
+            Next: HelloWorld2
+            Parameters:
+              LaunchType: FARGATE
+              Cluster: !GetAtt FargateECSCluster.Arn
+              TaskDefinition: !Ref FargateECSTaskDefinition
+              NetworkConfiguration:
+                AwsvpcConfiguration:
+                  AssignPublicIp: ENABLED
+                  SecurityGroups:
+                    - !Ref FargateSG
+                  Subnets:
+                    - !Ref FargateSubnet
+              Overrides:
+                ContainerOverrides:
+                  - Name: "scraper_container"
+                    Command:
+                      - "python"
+                      - "launcher.py"
+                      - '{"spider_name": "list-spider", "key": "test1"}'
+                    Environment:
+                      - Name: "TASK_TOKEN_ENV_VARIABLE"
+                        "Value.$": "$$.Task.Token"
+                      - Name: "FEED_BUCKET_NAME"
+                        Value: !Ref CpattScraperBucket
+          HelloWorld2:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-hello_step_2"
+            End: true
 
 # We include files by whitelisting to reduce the deployment time.
 # Just remember to add any files you create!
@@ -67,6 +109,8 @@ resources:
 plugins:
   - serverless-python-requirements
   - serverless-cloudformation-sub-variables
+  - serverless-step-functions
+  - serverless-pseudo-parameters
 custom:
   pythonRequirements:
     slim: true # Omits tests, __pycache__, *.pyc etc from dependencies
