@@ -18,6 +18,10 @@ def is_in_aws():
     return os.getenv('AWS_EXECUTION_ENV') is not None
 
 
+def has_task_token():
+    return os.getenv('TASK_TOKEN_ENV_VARIABLE') is not None
+
+
 def crawl(settings={}, spider_name="", key="", spider_kwargs={}):
     project_settings = get_project_settings()
     spider_loader = SpiderLoader(project_settings)
@@ -25,7 +29,7 @@ def crawl(settings={}, spider_name="", key="", spider_kwargs={}):
 
     feed_uri = ""
     feed_format = "csv"
-
+    spider_key = ""
     try:
         spider_key = urlparse(spider_kwargs.get("start_urls")[0]).hostname if spider_kwargs.get(
             "start_urls") else urlparse(spider_cls.start_urls[0]).hostname
@@ -51,7 +55,7 @@ def crawl(settings={}, spider_name="", key="", spider_kwargs={}):
     process.crawl(spider_cls, **spider_kwargs)
     process.start()
 
-    if is_in_aws():
+    if is_in_aws() and has_task_token():
         import boto3
         import json
         client = boto3.client('stepfunctions')
